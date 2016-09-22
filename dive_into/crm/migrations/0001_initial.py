@@ -37,17 +37,17 @@ class Migration(migrations.Migration):
                 ('email', models.EmailField(max_length=254)),
                 ('phone', models.IntegerField()),
                 ('active', models.BooleanField(default=True)),
-                ('client_id', models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, to='intro.Clients', null=True)),
+                ('client', models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, to='crm.Clients', null=True)),
             ],
         ),
         migrations.AddField(
             model_name='activities',
-            name='client_id',
-            field=models.ForeignKey(to='intro.Clients', on_delete=django.db.models.deletion.PROTECT),
+            name='client',
+            field=models.ForeignKey(to='crm.Clients', on_delete=django.db.models.deletion.PROTECT),
         ),
         migrations.AddField(
             model_name='activities',
             name='contact_id',
-            field=models.ForeignKey(to='intro.Contacts', on_delete=django.db.models.deletion.PROTECT),
+            field=models.ForeignKey(to='crm.Contacts', on_delete=django.db.models.deletion.PROTECT),
         ),
     ]
