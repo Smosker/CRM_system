@@ -20,7 +20,7 @@ class Contact(models.Model):
     last_name = models.CharField(max_length=200)
     email = models.EmailField()
     phone = models.IntegerField()
-    client = models.ForeignKey(Client, on_delete=models.SET_NULL,null=True,related_name='contact')
+    client = models.ForeignKey(Client, on_delete=models.SET_NULL,null=True)
     active = models.BooleanField(default=True)
 
     def full_name(self):

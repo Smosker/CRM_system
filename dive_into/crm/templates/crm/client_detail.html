@@ -1,0 +1,20 @@
+{{client}}
+
+<ul>
+{% for contact in client.contact_set.all %}
+    <li>{{ contact.first_name}},{{ contact.email }}</li>
+{% endfor %}
+</ul>
+
+
+
+{% for contact in client.contact_set.all %}
+<form method="post">
+{% csrf_token %}
+    <p><b>Новое имя для контакта:</b><br>
+    <input type="text" name="name" value="{{contact.first_name}}"/>
+
+        <br>
+<input type="submit" value="Change name" />
+</form>
+{% endfor %}

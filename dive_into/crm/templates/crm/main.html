@@ -1,7 +1,8 @@
+
 {% if clients_list %}
     <ul>
     {% for client in clients_list %}
-        <li><a href="{{ client.id }}/">{{ client.name }}</a></li>
+        <li><a href="{% url 'crm:client' client.id%}">{{ client.name }}</a></li>
     {% endfor %}
     </ul>
 {% else %}
