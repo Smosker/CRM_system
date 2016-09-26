@@ -1,0 +1,20 @@
+{{contact}}
+
+
+<h3>{{ "Change contact data" }}</h3>
+
+{% if form %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+<br>
+    <input type="submit" value="Change data">
+</form>
+{% endif %}
+
+
+<form  method="post">
+    {% csrf_token %}
+    <input id="action_id" type="hidden" name="action" value="Delete">
+    <input type="submit" value="Delete" />
+</form>

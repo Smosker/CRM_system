@@ -1,0 +1,21 @@
+<h3>{{ "Add a new contact" }}</h3>
+{% if form %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+<br>
+    <input type="submit" value="Create a contact">
+</form>
+{% endif %}
+
+<h3>{{ "List of all contacts" }}</h3>
+{% if contacts_list %}
+    <ul>
+    {% for contact in contacts_list %}
+        <li><a href="{% url 'crm:contact' contact.id%}">{{ contact }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No contacts are available.</p>
+{% endif %}
+

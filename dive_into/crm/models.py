@@ -9,7 +9,9 @@ class Client(models.Model):
     loyal = models.BooleanField(default=False)
 
     def last_actitivty(self):
-        last = max([i.send_date for i in self.activity_set.all() if i.is_send])
+        send_dates = [i.send_date for i in self.activity_set.all() if i.is_send()]
+
+        last = max(send_dates) if send_dates else None
         return last
 
     def __unicode__(self):
@@ -27,7 +29,7 @@ class Contact(models.Model):
         return '{} {}'.format(self.first_name,self.last_name)
 
     def __unicode__(self):
-        return ' '.join((self.first_name,self.last_name,self.email,str(self.phone),str(self.active)))
+        return ' '.join((self.first_name,self.last_name,self.email,str(self.phone),str(self.active),self.client.name))
 
 class Activity(models.Model):
 
@@ -36,9 +38,6 @@ class Activity(models.Model):
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     contact = models.ForeignKey(Contact, on_delete=models.PROTECT,limit_choices_to={'active': True})
     send_date = models.DateTimeField(null=True,blank=True)
-
-
-
 
     def send(self):
         self.send_date = timezone.now()
