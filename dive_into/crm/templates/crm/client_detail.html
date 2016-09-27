@@ -1,20 +1,26 @@
-{{client}}
+<h3>{{ "Client Info" }}</h3>
+{{client|linebreaks}}
 
+
+<h3>{{ "Client contact data" }}</h3>
+<a href="{% url 'crm:new_contact'%}">{{ "Create new contact" }}</a>
 <ul>
 {% for contact in client.contact_set.all %}
-    <li>{{ contact.first_name}},{{ contact.email }}</li>
+    <li><a href="{% url 'crm:contact' contact.id%}">{{ contact.full_name}}, {{contact.email }}</a></li>
 {% endfor %}
 </ul>
 
+<h3>{{ "Change client data" }}</h3>
 
-
-{% for contact in client.contact_set.all %}
 <form method="post">
-{% csrf_token %}
-    <p><b>Новое имя для контакта:</b><br>
-    <input type="text" name="name" value="{{contact.first_name}}"/>
-
-        <br>
-<input type="submit" value="Change name" />
+    {% csrf_token %}
+    {{ form.as_ul }}
+<br>
+    <input type="submit" value="Change data">
 </form>
-{% endfor %}
+
+<form  method="post">
+    {% csrf_token %}
+    <input id="action_id" type="hidden" name="action" value="Delete">
+    <input type="submit" value="Delete" />
+</form>

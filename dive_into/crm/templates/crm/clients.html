@@ -2,6 +2,7 @@
 
 <link rel="stylesheet" type="text/css" href="{% static 'crm/style.css' %}" />
 
+<a href="{% url 'crm:new_client'%}">{{ "Create new client" }}</a>
 
 {% if clients_list %}
     <ul>

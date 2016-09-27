@@ -1,4 +1,5 @@
-# -*- coding: <utf-8> -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from django.db import models
 from django.utils import timezone
 # Create your models here.
@@ -15,21 +16,24 @@ class Client(models.Model):
         return last
 
     def __unicode__(self):
-        return '{} {}'.format(self.name, self.loyal)
+        return u'Имя клиента: {}\n Лоялен: {}'.format(self.name, self.loyal)
 
 class Contact(models.Model):
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
     email = models.EmailField()
     phone = models.IntegerField()
-    client = models.ForeignKey(Client, on_delete=models.SET_NULL,null=True)
+    client = models.ForeignKey(Client, on_delete=models.SET_NULL,null=True,blank=True)
     active = models.BooleanField(default=True)
 
     def full_name(self):
-        return '{} {}'.format(self.first_name,self.last_name)
+        return u'{} {}'.format(self.first_name,self.last_name)
 
     def __unicode__(self):
-        return ' '.join((self.first_name,self.last_name,self.email,str(self.phone),str(self.active),self.client.name))
+        template = u'Имя: {}\nФамилия: {}\nEmail: {}\nТелефон: {}\nАктивен: {}\nИмя клиента: {}\n'
+        return template.format(self.first_name,self.last_name,
+                          self.email,str(self.phone),
+                          str(self.active),self.client.name if self.client else '--')
 
 class Activity(models.Model):
 
@@ -46,7 +50,7 @@ class Activity(models.Model):
         return self.send_date != None
 
     def __unicode__(self):
-        return '{}, {} \n {}'.format(self.client,self.title,self.text)
+        return u'Клиент: {}\nТема: {} \n Текст: {}'.format(self.client,self.title,self.text)
 
 
 

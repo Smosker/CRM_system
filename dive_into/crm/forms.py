@@ -17,3 +17,10 @@ class ContactCreation(forms.ModelForm):
     'phone' ,
     'client',
     'active')
+
+class ClientCreation(forms.ModelForm):
+
+    class Meta:
+        model = Client
+
+        fields = ('name','loyal')

@@ -1,17 +1,16 @@
-{{contact}}
+<h3>{{ "Contact Info" }}</h3>
+{{contact|linebreaks}}
 
-
+<a href="{% url 'crm:client' contact.client.id|default:1%}">{{ contact.client.name }}</a>
 <h3>{{ "Change contact data" }}</h3>
 
-{% if form %}
+
 <form method="post">
     {% csrf_token %}
     {{ form.as_ul }}
 <br>
     <input type="submit" value="Change data">
 </form>
-{% endif %}
-
 
 <form  method="post">
     {% csrf_token %}
