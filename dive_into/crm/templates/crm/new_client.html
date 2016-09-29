@@ -1,8 +1,14 @@
-<h3>{{ "Create new client" }}</h3>
+{% extends 'crm/base.html' %}
+{% block content %}
+{% load bootstrap %}
 
+<h3>{{ "Create new client" }}</h3>
+<!-- Форма для создани клиента -->
 <form method="post">
     {% csrf_token %}
-    {{ form.as_ul }}
+    {{ form|bootstrap }}
 <br>
     <input type="submit" value="Create">
 </form>
+
+{% endblock content%}

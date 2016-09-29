@@ -1,19 +1,43 @@
-<h3>{{ "Contact Info" }}</h3>
-{{contact|linebreaks}}
-
-<a href="{% url 'crm:client' contact.client.id|default:1%}">{{ contact.client.name }}</a>
-<h3>{{ "Change contact data" }}</h3>
+{% extends 'crm/base.html' %}
+{% block content %}
+{% load bootstrap %}
 
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_ul }}
-<br>
-    <input type="submit" value="Change data">
-</form>
+<button class="btn btn-s btn-info" data-toggle="collapse" data-target="#hide-me">Change contact info</button>
 
+{% if contact.client %}
+<a href="{% url 'crm:client' contact.client.id%}" class="btn btn-s btn-info">{{ "Go to client" }}</a>
+{% endif %}
+<!-- Форма для удаления контакта -->
 <form  method="post">
     {% csrf_token %}
     <input id="action_id" type="hidden" name="action" value="Delete">
-    <input type="submit" value="Delete" />
+    <input type="submit" value="Delete" class="btn btn-s btn-danger" onclick="return confirm('Are you sure?')"/>
 </form>
+
+<div id="hide-me" class="collapse">
+
+<!-- Форма для изменения контакта -->
+    <br>
+<form method="post">
+    {% csrf_token %}
+    {{ form|bootstrap }}
+<br>
+    <input type="submit" value="Change data" class="btn btn-s btn-success">
+</form>
+
+</div>
+<br>
+<div class="col-sm-4">
+<div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">Contact Info</h3>
+            </div>
+            <div class="panel-body">
+              {{contact|linebreaks}}
+            </div>
+    </div>
+    </div>
+
+
+{% endblock content %}

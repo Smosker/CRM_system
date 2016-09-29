@@ -18,9 +18,26 @@ class ContactCreation(forms.ModelForm):
     'client',
     'active')
 
+
 class ClientCreation(forms.ModelForm):
 
     class Meta:
         model = Client
 
         fields = ('name','loyal')
+
+
+class ActivityCreation(forms.ModelForm):
+
+    class Meta:
+        model = Activity
+
+        fields = ('title',
+                  'text',
+                  'client',
+                  'contact')
+
+        widgets = {
+            'text': forms.Textarea(),
+        }
+

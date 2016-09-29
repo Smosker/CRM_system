@@ -2,8 +2,8 @@
 {% block content %}
 {% load bootstrap %}
 
-<h3>{{ "Create new contact" }}</h3>
-
+<h3>{{ "Create new activity" }}</h3>
+<!-- Форма для создания активности -->
 <form method="post">
     {% csrf_token %}
     {{ form|bootstrap }}

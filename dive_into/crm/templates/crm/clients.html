@@ -1,11 +1,19 @@
-{% load staticfiles %}
+{% extends 'crm/base.html' %}
+{% block content %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'crm/style.css' %}" />
 
-<a href="{% url 'crm:new_client'%}">{{ "Create new client" }}</a>
+
+{% if delete_client %}
+<div class="alert alert-success" role="alert">
+        <strong>Client Delete!</strong> Successfully delete client.
+</div>
+{% endif %}
+
+<a class="btn btn-xs btn-success" href="{% url 'crm:new_client'%}" >{{ "Create new client" }}</a>
 
 {% if clients_list %}
     <ul>
+        <br>
     {% for client in clients_list %}
         <li><a href="{% url 'crm:client' client.id%}">{{ client.name }}</a></li>
     {% endfor %}
@@ -13,3 +21,4 @@
 {% else %}
     <p>No clients are available.</p>
 {% endif %}
+{% endblock content %}

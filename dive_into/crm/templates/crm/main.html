@@ -1,0 +1,22 @@
+{% extends 'crm/base.html' %}
+{% block content %}
+
+
+<!-- Форма для поиска клиентов -->
+<form method="get">
+    {% csrf_token %}
+    <label for="search">Search clients by name: </label>
+    <input id="search" type="text" name="search">
+    <input type="submit" class="btn btn-xs btn-default" value="Search">
+</form>
+
+<!-- В случае непустого результата поиска отображаются отфильтрованные клиенты -->
+{% if search_clients %}
+    {% for client in search_clients %}
+        <li><a href="{% url 'crm:client' client.id%}">{{ client.name }}</a></li>
+    {% endfor %}
+
+{% endif%}
+
+
+{% endblock content %}
