@@ -4,11 +4,14 @@
 
 <h3>{{ "Create new contact" }}</h3>
 
-<form method="post">
+<form method="post" class="form-horizontal">
     {% csrf_token %}
-    {{ form|bootstrap }}
-<br>
-    <input type="submit" value="Create">
+    {{ form|bootstrap_horizontal }}
+    <div class="form-group">
+      <div class="col-sm-10 col-sm-offset-2">
+        <input type="submit" value="Create" class="btn btn-s btn-success">
+      </div>
+    </div>
 </form>
 
 {% endblock content%}

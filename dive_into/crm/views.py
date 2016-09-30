@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from abc import ABCMeta
-from django.shortcuts import render, get_object_or_404,redirect
+
+from django.shortcuts import render, redirect
 from django.views import generic
 from django.core.urlresolvers import reverse
-from datetime import datetime
+
 
 from .models import Client, Contact, Activity
 from .forms import ContactCreation, ClientCreation, ActivityCreation
@@ -26,7 +26,6 @@ class MainPage(generic.View):
                        if request.GET.get('search', '').lower() in client.name.lower()]
 
             context['search_clients'] = clients
-
         return render(request,self.template,context)
 
 class Distinct(generic.UpdateView):
@@ -36,8 +35,8 @@ class Distinct(generic.UpdateView):
     """
     def post(self, request, *args, **kwargs):
         if request.POST.get('action', '') == 'Delete':
-            object = self.get_object()
-            object.delete()
+            object_get = self.get_object()
+            object_get.delete()
             request.session['delete'] = True
             return redirect(reverse('crm:{}'.format(self.all_template)))
         else:

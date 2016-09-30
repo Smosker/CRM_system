@@ -16,11 +16,14 @@ class Client(models.Model):
     def last_actitivty(self):
         send_dates = [i.send_date for i in self.activity_set.all() if i.is_send()]
 
-        last = max(send_dates) if send_dates else None
+        last = max(send_dates).strftime("%Y.%m.%d %H:%M") if send_dates else None
         return last
 
+    def str_with_html(self):
+        return u'<b>Name</b>: {}\n<b>Loyal</b>: {}'.format(self.name, self.loyal)
+
     def __unicode__(self):
-        return u'Имя клиента: {}\n Лоялен: {}'.format(self.name, self.loyal)
+        return u'Name: {} Id: {} Loyal: {}'.format(self.name,self.id, self.loyal)
 
 class Contact(models.Model):
     """
@@ -36,11 +39,17 @@ class Contact(models.Model):
     def full_name(self):
         return u'{} {}'.format(self.first_name,self.last_name)
 
-    def __unicode__(self):
-        template = u'Имя: {}\nФамилия: {}\nEmail: {}\nТелефон: {}\nАктивен: {}\nИмя клиента: {}\n'
+    def str_with_html(self):
+        template = u'<b>First name</b>: {}\n<b>Last name</b>: {}\n<b>Email</b>: {}\n<b>Phone</b>: {}\n<b>Active</b>: {}\n<b>Client name</b>: {}\n'
         return template.format(self.first_name,self.last_name,
                           self.email,str(self.phone),
                           str(self.active),self.client.name if self.client else '--')
+    def __unicode__(self):
+        template = u'First name: {} Last name: {} Email: {} Phone: {} Active: {} Client name: {}'
+        return template.format(self.first_name,self.last_name,
+                          self.email,str(self.phone),
+                          str(self.active),self.client.name if self.client else '--')
+
 
 class Activity(models.Model):
     """
@@ -60,9 +69,9 @@ class Activity(models.Model):
     def is_send(self):
         return self.send_date != None
 
-    def activities_template_str(self):
-        send_date = self.send_date if self.send_date else u'Нет'
-        return u'Клиент: {}\n От: {}\nТема: {}\nОтправлено: {}'.format(self.client.name,self.contact.email,self.title,send_date)
+    def str_with_html(self):
+        send_date = self.send_date.strftime("%Y.%m.%d %H:%M") if self.send_date else u'Нет'
+        return u'<b>Client</b>: {}\n <b>From</b>: {}\n<b>Title</b>: {}\n<b>Send date</b>: {}'.format(self.client.name,self.contact.email,self.title,send_date)
 
     def __unicode__(self):
         send_date = self.send_date if self.send_date else u'Нет'

@@ -2,56 +2,55 @@
 {% block content %}
 {% load bootstrap %}
 
-
 {% if not activity.is_send %}
-<button class="btn btn-s btn-info" data-toggle="collapse" data-target="#hide-me">Change activity data</button>
+    <button class="btn btn-s btn-info" data-toggle="collapse" data-target="#hide-me">Change activity</button>
 {% endif %}
-
 
 <a href="{% url 'crm:client' activity.client.id%}" class="btn btn-s btn-info">{{ "Go to client" }}</a>
 <a href="{% url 'crm:contact' activity.contact.id%}" class="btn btn-s btn-info">{{ "Go to contact" }}</a>
 
-
 {% if not activity.is_send %}
 <!-- По нажатию на кнопку проставит дату отправки активности = сейчас
- после этого редактирование активности будет невозможно
- -->
-<form  method="post" >
-    <br>
-    {% csrf_token %}
-    <input id="action_id" type="hidden" name="action" value="Send">
-    <input type="submit" value="Send" class="btn btn-s btn-warning" onclick="return confirm('Are you sure?')"/>
-    </form>
-    <!-- Удаляет не отправленную активность -->
+  после этого редактирование активности будет невозможно-->
 
+<form  method="post" >
+  <br>
+  {% csrf_token %}
+  <input id="action_id" type="hidden" name="action" value="Send">
+  <input type="submit" value="Send" class="btn btn-s btn-warning" onclick="return confirm('Are you sure?')"/>
+</form>
+
+<!-- Удаляет не отправленную активность -->
 <form  method="post">
-    {% csrf_token %}
-    <input id="action_id" type="hidden" name="action" value="Delete">
-    <input type="submit" value="Delete" onclick="return confirm('Are you sure?')" class="btn btn-s btn-danger"/>
+  {% csrf_token %}
+  <input id="action_id" type="hidden" name="action" value="Delete">
+  <input type="submit" value="Delete" onclick="return confirm('Are you sure?')" class="btn btn-s btn-danger"/>
 </form>
 
 <div id="hide-me" class="collapse">
-
-<!-- Форма для изменения не отправленной активности -->
-<form method="post">
+  <!-- Форма для изменения не отправленной активности -->
+  <form method="post" class="form-horizontal">
     {% csrf_token %}
-    {{ form|bootstrap }}
-<br>
-    <input type="submit" value="Change data" class="btn btn-s btn-success">
-</form>
+    {{ form|bootstrap_horizontal }}
+    <div class="form-group">
+      <div class="col-sm-10 col-sm-offset-2">
+        <input type="submit" value="Save changes" class="btn btn-s btn-success">
+      </div>
+    </div>
+  </form>
 
 </div>
 
 {% endif %}
+
 <h3>{{ "Activity" }}</h3>
-{{activity.activities_template_str}}
-<br>
+<blockquote>
+{{activity.str_with_html|safe|linebreaks}}
+</blockquote>
 <button class="btn btn-s btn-info" data-toggle="collapse" data-target="#hide-me2">View activity text</button>
-
 <div id="hide-me2" class="collapse">
-<div style="width: 800px; height: 150px; overflow-y: scroll;">
-{{activity.text}}
+  <div style="width: 800px; height: 150px; overflow-y: scroll;">
+    {{activity.text}}
+  </div>
 </div>
-</div>
-
 {% endblock content %}

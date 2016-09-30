@@ -1,19 +1,45 @@
 {% extends 'crm/base.html' %}
 {% block content %}
 
-
 <a class="btn btn-xs btn-success" href="{% url 'crm:new_activity'%}">{{ "Create new activity" }}</a>
+<br>
+<br>
+<div class="col-md-9 ">
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h3 class="panel-title">Table of activities</h3>
+    </div>
+    <div class="panel-body">
+      {% if activities_list %}
+      <!-- Таблица всех активностей в системе -->
+        <table id="contacts_table" class="table table-striped">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Title</th>
+              <th>Contact</th>
+              <th>Send date</th>
+              <th>More info</th>
 
-<h3>{{ "List of all activities" }}</h3>
+            </tr>
+          </thead>
+          <tbody>
+            {% for activity in activities_list %}
+            <tr>
+              <td><a href="{% url 'crm:client' activity.client.id%}">{{ activity.client.name }}</a></td>
+              <td> {{ activity.title }}</td>
+              <td><a href="{% url 'crm:contact' activity.contact.id%}">{{ activity.contact.email }}</a></td>
+              <td> {{ activity.send_date|date:"Y.m.d H:i"}}</td>
+              <td><a href="{% url 'crm:activity' activity.id%}">Show</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+      <p>No activities are available.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
 
-
-{% if activities_list %}
-    <ul>
-    {% for activity in activities_list%}
-        <li><a href="{% url 'crm:activity' activity.id%}">{{ activity.activities_template_str }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No activities are available.</p>
-{% endif %}
 {% endblock content %}

@@ -15,7 +15,6 @@
     {% for client in search_clients %}
         <li><a href="{% url 'crm:client' client.id%}">{{ client.name }}</a></li>
     {% endfor %}
-
 {% endif%}
 
 

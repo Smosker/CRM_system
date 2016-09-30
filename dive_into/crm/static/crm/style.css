@@ -1,6 +1,7 @@
 
 body {
         padding-left: 15px;
+
     }
 
 form {
@@ -9,6 +10,25 @@ form {
 
 #head_link{
 font-family:Lobster;
-font-size:45px;
+font-size:52px;
+color:white;
 }
 
+
+.page-header {
+
+        border-radius: 25px;
+        margin-top: 10px;
+        margin-right: 15px;
+        padding: 5px 20px 20px 40px;
+        background:rgb(84,131,255);
+        background: -webkit-linear-gradient(right,rgba(84,131,255,0),rgba(84,131,255,1)); /*Safari 5.1-6*/
+        background: -o-linear-gradient(left,rgba(84,131,255,0),rgba(255,0,0,1)); /*Opera 11.1-12*/
+        background: -moz-linear-gradient(left,rgba(84,131,255,0),rgba(84,131,255,1)); /*Fx 3.6-15*/
+        background: linear-gradient(to left, rgba(84,131,255,0), rgba(84,131,255,1)); /*Standard*/
+    }
+
+h3{
+color:rgb(48,147,232);
+
+}

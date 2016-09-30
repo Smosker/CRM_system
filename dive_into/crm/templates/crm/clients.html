@@ -2,23 +2,45 @@
 {% block content %}
 
 
-
-{% if delete_client %}
-<div class="alert alert-success" role="alert">
-        <strong>Client Delete!</strong> Successfully delete client.
-</div>
-{% endif %}
-
 <a class="btn btn-xs btn-success" href="{% url 'crm:new_client'%}" >{{ "Create new client" }}</a>
+<br>
+<br>
+<div class="col-md-9 ">
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h3 class="panel-title">All clients</h3>
+    </div>
+    <div class="panel-body">
+      {% if clients_list %}
+      <!-- Таблица всех контактов в системе -->
+        <table id="contacts_table" class="table table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Loyal</th>
+              <th>Activities</th>
+              <th>Last activity date</th>
+              <th>Contacts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for client in clients_list %}
+            <tr>
+              <td><a href="{% url 'crm:client' client.id%}">{{ client.name }}</a></td>
+              <td> {{ client.loyal}}</td>
+              <td> {{ client.activity_set.count}}</td>
+              <td> {{ client.last_actitivty}}</td>
+              <td> {{ client.contact_set.count}}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
 
-{% if clients_list %}
-    <ul>
-        <br>
-    {% for client in clients_list %}
-        <li><a href="{% url 'crm:client' client.id%}">{{ client.name }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No clients are available.</p>
-{% endif %}
+      {% else %}
+      <p>No clients are available.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
 {% endblock content %}

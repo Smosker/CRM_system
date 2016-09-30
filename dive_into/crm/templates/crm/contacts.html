@@ -1,53 +1,45 @@
 {% extends 'crm/base.html' %}
 {% block content %}
-
-
 <a class="btn btn-xs btn-success"  href="{% url 'crm:new_contact'%}">{{ "Create new contact" }}</a>
 <br>
 <br>
-<div class="col-md-9 center-block">
-<div class="panel panel-info">
-            <div class="panel-heading">
-              <h3 class="panel-title">Table of contacts</h3>
-            </div>
-            <div class="panel-body">
-
-
-{% if contacts_list %}
-<!-- Таблица всех контактов в системе -->
-
-        <div class="col-md-8">
-          <table id="contacts_table" class="table table-striped">
-            <thead>
-              <tr>
-  <th>Имя</th>
-  <th>Фамилия</th>
-  <th>Email</th>
-  <th>Phone</th>
-  <th>Активен</th>
-  <th>Клиент</th>
-              </tr>
-            </thead>
-            <tbody>
-{% for contact in contacts_list %}
-<tr>
-  <td><a href="{% url 'crm:contact' contact.id%}">{{ contact.first_name }}</a></td>
-  <td> {{ contact.last_name }}</td>
-  <td> {{ contact.email }}</td>
-  <td> {{ contact.phone }}</td>
-  <td> {{ contact.active }}</td>
-  <td><a href="{% url 'crm:client' contact.client.id|default:1%}">{{ contact.client.name }}</a></td>
-</tr>
-{% endfor %}
-            </tbody>
-          </table>
-       </div>
-
-{% else %}
-    <p>No contacts are available.</p>
-{% endif %}
-
-            </div>
+<div class="col-md-9 ">
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h3 class="panel-title">Table of contacts</h3>
     </div>
+    <div class="panel-body">
+      {% if contacts_list %}
+      <!-- Таблица всех контактов в системе -->
+        <table id="contacts_table" class="table table-striped">
+          <thead>
+            <tr>
+              <th>First name</th>
+              <th>Last Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Active</th>
+              <th>Client</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for contact in contacts_list %}
+            <tr>
+              <td><a href="{% url 'crm:contact' contact.id%}">{{ contact.first_name }}</a></td>
+              <td> {{ contact.last_name }}</td>
+              <td> {{ contact.email }}</td>
+              <td> {{ contact.phone }}</td>
+              <td> {{ contact.active }}</td>
+              <td><a href="{% url 'crm:client' contact.client.id|default:1%}">{{ contact.client.name }}</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      {% else %}
+      <p>No contacts are available.</p>
+      {% endif %}
     </div>
+  </div>
+</div>
 {% endblock content %}

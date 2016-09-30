@@ -1,64 +1,100 @@
 {% extends 'crm/base.html' %}
 {% block content %}
 {% load bootstrap %}
-
 <ul class="nav nav-tabs">
   <li class="active"><a data-toggle="tab" href="#menu1">Client Info</a></li>
-
-
   <li><a data-toggle="tab" href="#menu2">Client Activities</a></li>
 </ul>
-
 <div class="tab-content">
   <div id="menu1" class="tab-pane active">
-      <br>
-    <button class="btn btn-s btn-info" data-toggle="collapse" data-target="#hide-me">Change client info</button>
+    <br>
+    <button class="btn btn-s btn-info" data-toggle="collapse" data-target="#hide-me">Change client</button>
     <a href="{% url 'crm:new_activity'%}" class="btn btn-s btn-success">{{ "Create new activity" }}</a>
     <a href="{% url 'crm:new_contact'%}" class="btn btn-s btn-success">{{ "Create new contact" }}</a>
-<!-- Форма для удаление клиента -->
+
+    <!-- Форма для удаление клиента -->
     <form  method="post">
-        {% csrf_token %}
-        <input id="action_id" type="hidden" name="action" value="Delete">
-        <input type="submit" value="Delete" class="btn btn-s btn-danger" onclick="return confirm('Are you sure?')"/>
+      {% csrf_token %}
+      <input id="action_id" type="hidden" name="action" value="Delete">
+      <input type="submit" value="Delete" class="btn btn-s btn-danger" onclick="return confirm('Are you sure?')"/>
     </form>
     <div id="hide-me" class="collapse">
-    <br>
-<!-- Форма для изменения данных клиента -->
-    <form method="post">
+      <br>
+
+      <!-- Форма для изменения данных клиента -->
+      <form method="post">
         {% csrf_token %}
         {{ form|bootstrap }}
-    <br>
-        <input type="submit" value="Change data" class="btn btn-s btn-success">
-    </form>
-
+        <br>
+        <input type="submit" value="Save changes" class="btn btn-s btn-success">
+      </form>
 
     </div>
+    <h3>Client</h3>
+      <blockquote>
+        {{client.str_with_html|safe|linebreaks}}
+      </blockquote>
 
-<h3>{{ "Client Info" }}</h3>
-{{client|linebreaks}}
-
-{% if client.contact_set.all %}
-<h3>{{ "Client contacts" }}</h3>
-
-<ul>
-{% for contact in client.contact_set.all %}
-    <li><a href="{% url 'crm:contact' contact.id%}">{{ contact.full_name}}, {{contact.email }}</a></li>
-{% endfor %}
-</ul>
-{% endif %}
+    {% if client.contact_set.all %}
+    <div class="col-sm-4">
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <h3 class="panel-title">Client contacts</h3>
+        </div>
+        <div class="panel-body">
+          <ol>
+            {% for contact in client.contact_set.all %}
+            <li><b>Name</b>: <a href="{% url 'crm:contact' contact.id%}">{{ contact.full_name}}</a> <b>Email</b>: {{contact.email}}</li>
+            {% endfor %}
+          </ol>
+          {% endif %}
+        </div>
+      </div>
+    </div>
   </div>
-
   <div id="menu2" class="tab-pane fade">
-    <ul>
-{% for activity in client.activity_set.all %}
-    <br>
-    <li><a href="{% url 'crm:activity' activity.id%}">{{ activity.activities_template_str}}</a></li>
-{% endfor %}
-</ul>
+      <br>
+      <a href="{% url 'crm:new_activity'%}" class="btn btn-s btn-success">{{ "Create new activity" }}</a>
+          <br>
+      <br>
+      <div class="col-md-9 ">
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h3 class="panel-title">{{ client.name }} activitites</h3>
+    </div>
+
+      <div class="panel-body">
+      {% if client.activity_set.all %}
+        <table id="contacts_table" class="table table-striped">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Title</th>
+              <th>Contact</th>
+              <th>Send date</th>
+              <th>More info</th>
+
+            </tr>
+          </thead>
+          <tbody>
+            {% for activity in client.activity_set.all %}
+            <tr>
+              <td><a href="{% url 'crm:client' activity.client.id%}">{{ activity.client.name }}</a></td>
+              <td> {{ activity.title }}</td>
+              <td><a href="{% url 'crm:contact' activity.contact.id%}">{{ activity.contact.email }}</a></td>
+              <td> {{ activity.send_date|date:"Y.m.d H:i"}}</td>
+              <td><a href="{% url 'crm:activity' activity.id%}">Show</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+      <p>No activities found</p>
+      {% endif %}
+    </div>
   </div>
-</div>
-
-
-
+          </div>
+      </div>
+    </div>
 
 {% endblock content %}
