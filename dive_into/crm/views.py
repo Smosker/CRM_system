@@ -21,11 +21,17 @@ class MainPage(generic.View):
 
     def get(self, request, *args, **kwargs):
         context = {}
+        request.session['deleted_data'] = True
         if request.GET.get('search', None):
             clients = [client for client in self.model.objects.all()
                        if request.GET.get('search', '').lower() in client.name.lower()]
 
             context['search_clients'] = clients
+
+        elif request.session.get('deleted_data',''):
+            context['deleted_data'] = request.session['deleted_data']
+            request.session['deleted_data'] = False
+
         return render(request,self.template,context)
 
 class Distinct(generic.UpdateView):
