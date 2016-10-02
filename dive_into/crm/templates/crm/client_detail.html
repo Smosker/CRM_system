@@ -35,19 +35,21 @@
         {{client.str_with_html|safe|linebreaks}}
       </blockquote>
 
-    {% if client.contact_set.all %}
     <div class="col-sm-4">
       <div class="panel panel-info">
         <div class="panel-heading">
           <h3 class="panel-title">Client contacts</h3>
         </div>
         <div class="panel-body">
-          <ol>
+            {% if client.contact_set.all %}
+              <ol>
             {% for contact in client.contact_set.all %}
-            <li><b>Name</b>: <a href="{% url 'crm:contact' contact.id%}">{{ contact.full_name}}</a> <b>Email</b>: {{contact.email}}</li>
+              <li><b>Name</b>: <a href="{% url 'crm:contact' contact.id%}">{{ contact.full_name}}</a> <b>Email</b>: {{contact.email}}</li>
             {% endfor %}
-          </ol>
-          {% endif %}
+              </ol>
+            {% else %}
+              <p>No contact's found</p>
+            {% endif %}
         </div>
       </div>
     </div>
