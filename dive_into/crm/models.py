@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.utils import timezone
-from django.utils.html import format_html
+from django.contrib.auth.models import User
 # Create your models here.
 
 
@@ -36,6 +36,7 @@ class Contact(models.Model):
     phone = models.IntegerField()
     client = models.ForeignKey(Client, on_delete=models.SET_NULL,null=True,blank=True)
     active = models.BooleanField(default=True)
+    owner_id = models.ForeignKey(User, editable=False,null=True)
 
     def full_name(self):
         return u'{} {}'.format(self.first_name,self.last_name)

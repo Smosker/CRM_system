@@ -30,6 +30,13 @@
       <a href="{% url 'crm:clients' %}" class="btn btn-lg btn-primary" >Clients</a>
       <a href="{% url 'crm:contacts' %}" class="btn btn-lg btn-primary" >Contacts</a>
       <a href="{% url 'crm:activities' %}" class="btn btn-lg btn-primary" >Activities</a>
+      {% if user.is_authenticated %}
+
+    <a href="{% url 'django.contrib.auth.views.logout' %}" class="btn btn-lg btn-primary"><span class="glyphicon glyphicon-log-out"></span></a>
+    <h5>Текущий пользователь: {{user.username}}<h5>
+        {% else %}
+    <a href="{% url 'django.contrib.auth.views.login' %}" class="btn btn-lg btn-primary"><span class="glyphicon glyphicon-log-in"></span></a>
+    {% endif %}
     </div>
 
     <div class="content">

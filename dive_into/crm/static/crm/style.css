@@ -33,7 +33,14 @@ h3{
 color:rgb(48,147,232);
 
 }
+h5{
+color:white;
+}
 .custom-alert{
 width:450px;
 
+}
+
+.glyphicon{
+font-size:1.3em;
 }

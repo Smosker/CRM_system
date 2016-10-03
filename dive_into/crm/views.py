@@ -21,7 +21,6 @@ class MainPage(generic.View):
 
     def get(self, request, *args, **kwargs):
         context = {}
-        print(request.session['deleted_data'])
         if request.GET.get('search', None):
             clients = [client for client in self.model.objects.all()
                        if request.GET.get('search', '').lower() in client.name.lower()]
@@ -30,7 +29,6 @@ class MainPage(generic.View):
 
         elif request.session.get('deleted_data',''):
             context['deleted_data'] = request.session['deleted_data']
-            print(context['deleted_data'])
             request.session['deleted_data'] = None
 
         return render(request,self.template,context)
@@ -95,6 +93,9 @@ class Contacts(generic.ListView):
     template_name = 'crm/contacts.html'
     context_object_name = 'contacts_list'
 
+    def get_queryset(self):
+        return self.model.objects.filter(owner_id=self.request.user)
+
 
 class DistinctContact(Distinct):
     """
@@ -118,6 +119,11 @@ class CreateContact(generic.CreateView):
 
     def get_success_url(self):
         return reverse('crm:contact', kwargs={'pk':self.object.id})
+
+    def form_valid(self, form):
+        contact = form.save(commit=False)
+        contact.owner_id = self.request.user
+        return super(CreateContact, self).form_valid(form)
 
 class Activities(generic.ListView):
     """
