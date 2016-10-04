@@ -4,7 +4,8 @@
 from django.shortcuts import render, redirect
 from django.views import generic
 from django.core.urlresolvers import reverse
-
+from django.http import Http404
+from django.core.exceptions import ObjectDoesNotExist
 
 from .models import Client, Contact, Activity
 from .forms import ContactCreation, ClientCreation, ActivityCreation
@@ -33,18 +34,38 @@ class MainPage(generic.View):
 
         return render(request,self.template,context)
 
+
 class Distinct(generic.UpdateView):
     """
     Класс для наследования UpdateView + обработка нажатия кнопки Delete на странице
     с удалением соответствующего объекта, если нет препятствий
     """
+    def get_object(self, queryset=None):
+        try:
+            object_get = self.model.objects.get(pk=self.kwargs['pk'])
+        except ObjectDoesNotExist:
+            raise Http404("No object found matching this query")
+
+        if self.request.user.is_authenticated():
+            if object_get.owner == self.request.user:
+                return object_get
+
+    def get_form_kwargs(self):
+        """
+        Добавляем текущего пользователя в список аргументов,
+        для корректного формирования списка foreign_keys's
+        доступных для выбора
+        """
+        kwargs = super(Distinct, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
+
     def post(self, request, *args, **kwargs):
         if request.POST.get('action', '') == 'Delete':
             object_get = self.get_object()
             request.session['deleted_data'] = str(object_get)
             object_get.delete()
             return redirect(reverse('crm:main'))
-            #.format(self.all_template)))
         else:
             return super(Distinct, self).post(request, *args, **kwargs)
 
@@ -52,7 +73,37 @@ class Distinct(generic.UpdateView):
         return reverse('crm:{}'.format(self.distinct_template), kwargs={'pk': self.kwargs['pk']})
 
 
-class Clients(generic.ListView):
+class Creation(generic.CreateView):
+    """
+    Класс для наследования CreateView + передача текущего пользователя в
+    форму для заполнения поля owner в соответствующей модели
+    """
+    def get_form_kwargs(self):
+        """
+        Добавляем текущего пользователя в список аргументов,
+        для корректного формирования списка foreign_keys's
+        доступных для выбора
+        """
+        kwargs = super(Creation, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('crm:{}'.format(self.url), kwargs={'pk':self.object.id})
+
+    def form_valid(self, form):
+        object_to_save = form.save(commit=False)
+        object_to_save.owner = self.request.user
+        return super(Creation, self).form_valid(form)
+
+
+class List(generic.ListView):
+    def get_queryset(self):
+        if self.request.user.is_authenticated():
+            return self.model.objects.filter(owner=self.request.user)
+
+
+class Clients(List):
     """
     Отображает список всех клиентов в системе
     """
@@ -72,29 +123,40 @@ class DistinctClient(Distinct):
     all_template = 'clients'
     distinct_template = 'client'
 
+    def get_form_kwargs(self):
+        """
+        Переписываем родительский метод Distinct, так
+        как для создания клиента нет нужды фильровать
+        доступные результаты в форме для foreing_keys
+        """
+        return generic.UpdateView.get_form_kwargs(self)
 
-class CreateClient(generic.CreateView):
+
+class CreateClient(Creation):
     """
     Обрабатывает запросы на создание клиента,
     при успехе перекидывает на страницу созданного клиента
     """
     form_class = ClientCreation
     template_name = 'crm/new_client.html'
+    url = 'client'
 
-    def get_success_url(self):
-        return reverse('crm:client', kwargs={'pk':self.object.id})
+    def get_form_kwargs(self):
+        """
+        Переписываем родительский метод Creation, так
+        как для создания клиента нет нужды фильровать
+        доступные результаты в форме для foreing_keys
+        """
+        return generic.CreateView.get_form_kwargs(self)
 
 
-class Contacts(generic.ListView):
+class Contacts(List):
     """
     Отображает список всех контактов в системе
     """
     model = Contact
     template_name = 'crm/contacts.html'
     context_object_name = 'contacts_list'
-
-    def get_queryset(self):
-        return self.model.objects.filter(owner_id=self.request.user)
 
 
 class DistinctContact(Distinct):
@@ -109,23 +171,17 @@ class DistinctContact(Distinct):
     distinct_template = 'contact'
 
 
-class CreateContact(generic.CreateView):
+class CreateContact(Creation):
     """
     Обрабатывает запросы на создание контакта,
     при успехе перекидывает на страницу созданного контакта
     """
     form_class = ContactCreation
     template_name = 'crm/new_contact.html'
+    url = 'contact'
 
-    def get_success_url(self):
-        return reverse('crm:contact', kwargs={'pk':self.object.id})
 
-    def form_valid(self, form):
-        contact = form.save(commit=False)
-        contact.owner_id = self.request.user
-        return super(CreateContact, self).form_valid(form)
-
-class Activities(generic.ListView):
+class Activities(List):
     """
     Отображает список всех активностей в системе
     """
@@ -157,17 +213,16 @@ class DistinctActivity(Distinct):
             return super(DistinctActivity,self).post(request, *args, **kwargs)
 
 
-
-class CreateActivity(generic.CreateView):
+class CreateActivity(Creation):
     """
     Обрабатывает запросы на создание активности,
     при успехе перекидывает на страницу созданной активности
     """
     form_class = ActivityCreation
     template_name = 'crm/new_activity.html'
+    url = 'activity'
 
-    def get_success_url(self):
-        return reverse('crm:activity', kwargs={'pk': self.object.id})
+
 
 
 

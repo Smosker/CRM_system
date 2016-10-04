@@ -1,6 +1,8 @@
 {% extends 'crm/base.html' %}
 {% block content %}
 {% load bootstrap %}
+
+{% if contact %}
 <button class="btn btn-s btn-info" data-toggle="collapse" data-target="#hide-me">Change contact</button>
 {% if contact.client %}
 <a href="{% url 'crm:client' contact.client.id%}" class="btn btn-s btn-info">{{ "Go to client" }}</a>
@@ -29,4 +31,8 @@
 <blockquote>
   {{contact.str_with_html|safe|linebreaks}}
 </blockquote>
+
+{% else %}
+<h3>You don't have rights to view this contact</h3>
+{% endif %}
 {% endblock content %}

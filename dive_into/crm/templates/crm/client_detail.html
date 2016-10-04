@@ -1,6 +1,7 @@
 {% extends 'crm/base.html' %}
 {% block content %}
 {% load bootstrap %}
+{% if client %}
 <ul class="nav nav-tabs">
   <li class="active"><a data-toggle="tab" href="#menu1">Client Info</a></li>
   <li><a data-toggle="tab" href="#menu2">Client Activities</a></li>
@@ -98,5 +99,7 @@
           </div>
       </div>
     </div>
-
+{% else %}
+<h3>You don't have rights to view this client</h3>
+{% endif %}
 {% endblock content %}

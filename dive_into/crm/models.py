@@ -13,6 +13,7 @@ class Client(models.Model):
     """
     name = models.CharField(max_length=200)
     loyal = models.BooleanField(default=False)
+    owner = models.ForeignKey(User, editable=False, null=True)
 
     def last_actitivty(self):
         send_dates = [i.send_date for i in self.activity_set.all() if i.is_send()]
@@ -24,7 +25,8 @@ class Client(models.Model):
         return u'<b>Name</b>: {}\n<b>Loyal</b>: {}'.format(self.name, self.loyal)
 
     def __unicode__(self):
-        return u'Name: {} Id: {} Loyal: {}'.format(self.name,self.id, self.loyal)
+        return u'Name: {} Id: {} Loyal: {}'.format(self.name, self.id, self.loyal)
+
 
 class Contact(models.Model):
     """
@@ -34,23 +36,23 @@ class Contact(models.Model):
     last_name = models.CharField(max_length=200)
     email = models.EmailField()
     phone = models.IntegerField()
-    client = models.ForeignKey(Client, on_delete=models.SET_NULL,null=True,blank=True)
+    client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True)
     active = models.BooleanField(default=True)
-    owner_id = models.ForeignKey(User, editable=False,null=True)
+    owner = models.ForeignKey(User, editable=False,null=True)
 
     def full_name(self):
         return u'{} {}'.format(self.first_name,self.last_name)
 
     def str_with_html(self):
         template = u'<b>First name</b>: {}\n<b>Last name</b>: {}\n<b>Email</b>: {}\n<b>Phone</b>: {}\n<b>Active</b>: {}\n<b>Client name</b>: {}\n'
-        return template.format(self.first_name,self.last_name,
-                          self.email,str(self.phone),
-                          str(self.active),self.client.name if self.client else '--')
+        return template.format(self.first_name, self.last_name,
+                               self.email, str(self.phone),
+                               str(self.active), self.client.name if self.client else '--')
     def __unicode__(self):
         template = u'First name: {} Last name: {} Email: {} Phone: {} Active: {} Client name: {}'
-        return template.format(self.first_name,self.last_name,
-                          self.email,str(self.phone),
-                          str(self.active),self.client.name if self.client else '--')
+        return template.format(self.first_name, self.last_name,
+                               self.email, str(self.phone),
+                               str(self.active), self.client.name if self.client else '--')
 
 
 class Activity(models.Model):
@@ -62,14 +64,15 @@ class Activity(models.Model):
     title = models.CharField(max_length=30)
     text = models.CharField(max_length=10000)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
-    contact = models.ForeignKey(Contact, on_delete=models.PROTECT,limit_choices_to={'active': True})
-    send_date = models.DateTimeField(null=True,blank=True)
+    contact = models.ForeignKey(Contact, on_delete=models.PROTECT, limit_choices_to={'active': True})
+    send_date = models.DateTimeField(null=True, blank=True)
+    owner = models.ForeignKey(User, editable=False, null=True)
 
     def send(self):
         self.send_date = timezone.now()
 
     def is_send(self):
-        return self.send_date != None
+        return self.send_date is not None
 
     def str_with_html(self):
         send_date = self.send_date.strftime("%Y.%m.%d %H:%M") if self.send_date else u'Нет'
