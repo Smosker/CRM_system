@@ -16,10 +16,28 @@
 
 <!-- В случае непустого результата поиска отображаются отфильтрованные клиенты -->
 {% if search_clients %}
+    {% if search_clients = 'no auth'%}
+    <h4>You have to authorise in order to make a search</h4>
+    {% elif search_clients = 'no result'%}
+    <h5>No result's found</h5>
+    {% else %}
     {% for client in search_clients %}
         <li><a href="{% url 'crm:client' client.id%}">{{ client.name }}</a></li>
     {% endfor %}
+    {% endif %}
+
 {% endif%}
 
-
+<h3>Welome to incredible CRM system</h3>
+<h4>Here you can do the following:</h4>
+ <ol>
+  <li>Create clients</li>
+  <li>Create contacts</li>
+  <li>Create activities with created clients and contacts</li>
+  <li>Send activities</li>
+  <li>Change clients/contacts data</li>
+  <li>Change activities (but only if they haven't been sent)</li>
+  <li>Be able to see only clients/contacts/activities created by you</li>
+  <li>You should login/register in order to fully work in system</li>
+</ol>
 {% endblock content %}

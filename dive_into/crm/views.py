@@ -23,16 +23,22 @@ class MainPage(generic.View):
     def get(self, request, *args, **kwargs):
         context = {}
         if request.GET.get('search', None):
-            clients = [client for client in self.model.objects.all()
-                       if request.GET.get('search', '').lower() in client.name.lower()]
+            if self.request.user.is_authenticated():
+                clients = self.model.objects.filter(name__icontains=request.GET.get('search', ''),
+                                                owner=request.user)
 
-            context['search_clients'] = clients
+                if clients:
+                    context['search_clients'] = clients
+                else:
+                    context['search_clients'] = 'no result'
+            else:
+                context['search_clients'] = 'no auth'
 
-        elif request.session.get('deleted_data',''):
+        elif request.session.get('deleted_data', ''):
             context['deleted_data'] = request.session['deleted_data']
             request.session['deleted_data'] = None
 
-        return render(request,self.template,context)
+        return render(request, self.template, context)
 
 
 class Distinct(generic.UpdateView):
@@ -57,7 +63,8 @@ class Distinct(generic.UpdateView):
         доступных для выбора
         """
         kwargs = super(Distinct, self).get_form_kwargs()
-        kwargs.update({'user': self.request.user})
+        if self.request.user.is_authenticated():
+            kwargs.update({'user': self.request.user})
         return kwargs
 
     def post(self, request, *args, **kwargs):

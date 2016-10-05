@@ -3,12 +3,11 @@
 {% load bootstrap %}
 
 <form method="post" style="width:50%; margin:0 auto;">
-    {% csrf_token %}
-    {{form|bootstrap}}
-<input type="submit" value="Login" class="btn btn-s btn-success"/>
+{% csrf_token %}
+
+    {{ form|bootstrap}}
+<input type="submit" value="Register" class="btn btn-s btn-success"/>
 <input type="hidden" name="next" value="{{ next }}" />
 </form>
 
 {% endblock content %}
-
-
