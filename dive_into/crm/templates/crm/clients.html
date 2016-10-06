@@ -29,7 +29,7 @@
               <td><a href="{% url 'crm:client' client.id%}">{{ client.name }}</a></td>
               <td> {{ client.loyal}}</td>
               <td> {{ client.activity_set.count}}</td>
-              <td> {{ client.last_actitivty}}</td>
+              <td> {{ client.last_activity}}</td>
               <td> {{ client.contact_set.count}}</td>
             </tr>
             {% endfor %}

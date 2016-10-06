@@ -21,11 +21,12 @@
     {% elif search_clients = 'no result'%}
     <h5>No result's found</h5>
     {% else %}
+    <ol>
     {% for client in search_clients %}
-        <li><a href="{% url 'crm:client' client.id%}">{{ client.name }}</a></li>
+        <li><a href="{% url 'crm:client' client.id%}">{{ client }}</a></li>
     {% endfor %}
+    </ol>
     {% endif %}
-
 {% endif%}
 
 <h3>Welome to incredible CRM system</h3>
