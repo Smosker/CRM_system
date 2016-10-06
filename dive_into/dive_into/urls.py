@@ -23,6 +23,6 @@ urlpatterns = [
     url(r'^crm/', include('crm.urls', namespace='crm')),
 
     url('^register/', views.UserCreate.as_view(), name='register'),
-    url(r'^accounts/login/$', django.contrib.auth.views.login),
-    url(r'^accounts/logout/$', django.contrib.auth.views.logout, {'next_page': '/crm'})
+    url(r'^accounts/login/$', django.contrib.auth.views.login, name='login'),
+    url(r'^accounts/logout/$', django.contrib.auth.views.logout, {'next_page': '/crm'}, name='logout')
 ]

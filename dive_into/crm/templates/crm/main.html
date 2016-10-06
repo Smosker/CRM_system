@@ -16,9 +16,9 @@
 
 <!-- В случае непустого результата поиска отображаются отфильтрованные клиенты -->
 {% if search_clients %}
-    {% if search_clients = 'no auth'%}
+    {% if search_clients == 'no auth'%}
     <h4>You have to authorise in order to make a search</h4>
-    {% elif search_clients = 'no result'%}
+    {% elif search_clients == 'no result'%}
     <h5>No result's found</h5>
     {% else %}
     <ol>
