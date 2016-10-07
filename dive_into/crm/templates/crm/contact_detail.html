@@ -26,6 +26,11 @@
     </div>
   </form>
 </div>
+    {% for a,b in form.errors.items %}
+        <div class="alert alert-danger custom-alert" role="alert">
+         <strong>Warning!</strong> {{b}} You should correct the mistakes and then save changes again
+        </div>
+    {% endfor %}
 <br>
 <h3>Contact</h3>
 <blockquote>

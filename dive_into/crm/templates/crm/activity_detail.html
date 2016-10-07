@@ -42,7 +42,11 @@
 </div>
 
 {% endif %}
-
+    {% for a,b in form.errors.items %}
+        <div class="alert alert-danger custom-alert" role="alert">
+         <strong>Warning!</strong> {{b}} You should correct the mistakes and then save changes again
+        </div>
+    {% endfor %}
 <h3>{{ "Activity" }}</h3>
 <blockquote>
 {{activity.str_with_html|safe|linebreaks}}
