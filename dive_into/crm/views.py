@@ -20,12 +20,12 @@ class MainPage(generic.View):
     template = 'crm/main.html'
     model = Client
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         context = {}
         if request.GET.get('search', None):
             if self.request.user.is_authenticated():
                 clients = self.model.objects.filter(name__icontains=request.GET.get('search', ''),
-                                                owner=request.user)
+                                                    owner=request.user)
 
                 if clients:
                     context['search_clients'] = clients
@@ -96,7 +96,7 @@ class Creation(generic.CreateView):
         return kwargs
 
     def get_success_url(self):
-        return reverse('crm:{}'.format(self.url), kwargs={'pk':self.object.id})
+        return reverse('crm:{}'.format(self.url), kwargs={'pk': self.object.id})
 
     def form_valid(self, form):
         object_to_save = form.save(commit=False)
@@ -217,7 +217,7 @@ class DistinctActivity(Distinct):
             activity.save()
             return redirect(reverse('crm:activity', kwargs={'pk': activity.id}))
         else:
-            return super(DistinctActivity,self).post(request, *args, **kwargs)
+            return super(DistinctActivity, self).post(request, *args, **kwargs)
 
 
 class CreateActivity(Creation):

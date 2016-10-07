@@ -31,7 +31,7 @@ class ClientCreation(forms.ModelForm):
 
 
 class ActivityCreation(forms.ModelForm):
-    def __init__(self, user=None,*args, **kwargs):
+    def __init__(self, user=None, *args, **kwargs):
         super(ActivityCreation, self).__init__(*args, **kwargs)
         user_clients = Client.objects.filter(owner=user)
         self.fields['client'].queryset = user_clients
@@ -45,6 +45,8 @@ class ActivityCreation(forms.ModelForm):
             del form_data['contact']
             del form_data['client']
             raise forms.ValidationError("Chosen contact doesn't belong to chosen client")
+        elif self.instance.send_date:
+            raise forms.ValidationError("You can't change activity which was sent")
         return form_data
 
     class Meta:

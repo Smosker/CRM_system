@@ -13,7 +13,7 @@ class Client(models.Model):
     """
     name = models.CharField(max_length=200, unique=True)
     loyal = models.BooleanField(default=False)
-    owner = models.ForeignKey(User, editable=True, null=True)
+    owner = models.ForeignKey(User, editable=True, null=True, blank=True)
 
     def last_activity(self):
         send_dates = [i.send_date for i in self.activity_set.all() if i.is_send()]
@@ -40,13 +40,14 @@ class Contact(models.Model):
     phone = models.IntegerField()
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True)
     active = models.BooleanField(default=True)
-    owner = models.ForeignKey(User, editable=True,null=True)
+    owner = models.ForeignKey(User, editable=True, null=True)
 
     def full_name(self):
         return u'{} {}'.format(self.first_name, self.last_name)
 
     def str_with_html(self):
-        template = u'<b>First name</b>: {}\n<b>Last name</b>: {}\n<b>Email</b>: {}\n<b>Phone</b>: {}\n<b>Active</b>: {}\n<b>Client</b>: {}\n'
+        template = u'''<b>First name</b>: {}\n<b>Last name</b>: {}\n<b>Email</b>: {}
+        <b>Phone</b>: {}\n<b>Active</b>: {}\n<b>Client</b>: {}\n'''
         return template.format(self.first_name, self.last_name,
                                self.email, str(self.phone),
                                str(self.active), self.client.name if self.client else '--')
