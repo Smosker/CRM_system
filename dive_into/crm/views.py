@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.views import generic
 from django.core.urlresolvers import reverse
 from django.http import Http404
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from .models import Client, Contact, Activity
 from .forms import ContactCreation, ClientCreation, ActivityCreation
@@ -133,7 +133,7 @@ class DistinctClient(Distinct):
     def get_form_kwargs(self):
         """
         Переписываем родительский метод Distinct, так
-        как для создания клиента нет нужды фильровать
+        как для создания клиента нет нужды фильтровать
         доступные результаты в форме для foreing_keys
         """
         return generic.UpdateView.get_form_kwargs(self)

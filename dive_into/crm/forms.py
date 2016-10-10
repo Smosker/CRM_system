@@ -8,7 +8,7 @@ class ContactCreation(forms.ModelForm):
     Форма отвечающая за внесение изменения в существующий
     маршрут или создание нового
     """
-    def __init__(self,user=None,*args, **kwargs):
+    def __init__(self, user=None, *args, **kwargs):
         super(ContactCreation, self).__init__(*args, **kwargs)
         self.fields['client'].queryset = Client.objects.filter(owner=user)
 
@@ -33,7 +33,8 @@ class ClientCreation(forms.ModelForm):
 class ActivityCreation(forms.ModelForm):
     def __init__(self, user=None, *args, **kwargs):
         super(ActivityCreation, self).__init__(*args, **kwargs)
-        user_clients = Client.objects.filter(owner=user)
+        self.user = user
+        user_clients = Client.objects.filter(owner=self.user)
         self.fields['client'].queryset = user_clients
         self.fields['contact'].queryset = Contact.objects.filter(client__in=user_clients)
 
