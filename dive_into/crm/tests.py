@@ -7,9 +7,10 @@ from django.core.urlresolvers import reverse
 from django.test.client import Client
 from django.db import IntegrityError
 from django.db.models import ProtectedError
+
 # Create your tests here.
 
-import models
+import models, views
 
 
 class ClientTest(TestCase):
@@ -30,6 +31,30 @@ class ClientTest(TestCase):
         self.object1 = models.Client(name='test1', loyal=True)
         self.object1.save()
         self.assertEqual(models.Client.objects.count(), 2)
+
+
+class ActivityTest(TestCase):
+    """
+    Тест модели Activity
+    """
+    def setUp(self):
+        self.object_client = models.Client(name='test', loyal=False)
+        self.object_client.save()
+        self.object_contact = models.Contact(first_name='test1', last_name='test',
+                                             email='test@test.com', phone='123',
+                                             client=self.object_client)
+        self.object_contact.save()
+
+        self.object = models.Activity(title='test', text='test', contact=self.object_contact,
+                                      client=self.object_client)
+        self.object.save()
+
+    def test_send_date(self):
+        """
+        Проверяем, что выставляется дата отправки
+        """
+        self.object.send()
+        self.assertTrue(self.object.send_date)
 
 
 class PageAccessTest(TestCase):
@@ -177,13 +202,85 @@ class PageAccessTest(TestCase):
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 1}))
         self.assertNotIn("You don't have rights to view this activity", response.content)
 
-        #Не успешная попытка получения информации о активносте не принадлежащем пользователю
+        #Не успешная попытка получения информации об активности не принадлежащей пользователю
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 2}))
         self.assertIn("You don't have rights to view this activity", response.content)
 
         #Попытка обращения к несуществующей активности с аутентификацией
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 3}))
         self.assertTrue(response.content.startswith('<h1>Not Found</h1>'))
+
+    def test_clients(self):
+        self.object = models.Client(name='test1', loyal=True, owner=self.user)
+        self.object.save()
+        #Проверка доступности клиента без аутентификации
+        response = self.client.get(reverse('crm:clients'))
+        self.assertIn('No clients are available.', response.content)
+        self.assertNotIn('test1', response.content)
+
+        #Недоступность чужих клиентов
+        self.client.login(username='testuser1', password='testpass1')
+        response = self.client.get(reverse('crm:clients'))
+        self.assertIn('No clients are available.', response.content)
+
+        #Доступность своего клиента
+        self.client.login(username='testuser', password='testpass')
+        response = self.client.get(reverse('crm:clients'))
+        self.assertNotIn('No clients are available.', response.content)
+        self.assertIn('test1', response.content)
+
+    def test_contacts(self):
+        self.object = models.Contact(first_name='test1', last_name='test',
+                                     email='test@test.com', phone='123',
+                                     owner=self.user)
+
+        self.object.save()
+        #Проверка доступности контакта без аутентификации
+        response = self.client.get(reverse('crm:contacts'))
+        self.assertIn('No contacts are available.', response.content)
+        self.assertNotIn('test1', response.content)
+
+        #Недоступность чужих контактов
+        self.client.login(username='testuser1', password='testpass1')
+        response = self.client.get(reverse('crm:contacts'))
+        self.assertIn('No contacts are available.', response.content)
+
+        #Доступность своего контакта
+        self.client.login(username='testuser', password='testpass')
+        response = self.client.get(reverse('crm:contacts'))
+        self.assertNotIn('No contacts are available.', response.content)
+        self.assertIn('test1', response.content)
+
+    def test_activities(self):
+        self.object_contact = models.Contact(first_name='test1', last_name='test',
+                                             email='test@test.com', phone='123',
+                                             owner=self.user)
+
+        self.object_client = models.Client(name='test1', loyal=True, owner=self.user)
+
+        self.object_contact.save()
+        self.object_client.save()
+
+        self.object = models.Activity(title='test1', text='test', contact=self.object_contact,
+                                      client=self.object_client, owner=self.user)
+
+        self.object.save()
+
+        #Проверка доступности активности без аутентификации
+        response = self.client.get(reverse('crm:activities'))
+        self.assertIn('No activities are available', response.content)
+        self.assertNotIn('test1', response.content)
+
+        #Недоступность чужих активностей
+        self.client.login(username='testuser1', password='testpass1')
+        response = self.client.get(reverse('crm:activities'))
+        self.assertIn('No activities are available', response.content)
+
+        #Доступность своей активности
+        self.client.login(username='testuser', password='testpass')
+        response = self.client.get(reverse('crm:activities'))
+        self.assertNotIn('No activities are available', response.content)
+        self.assertIn('test1', response.content)
 
 
 class ActivityCreateChangeTest(TestCase):
@@ -306,16 +403,21 @@ class ActivityCreateChangeTest(TestCase):
         self.client.login(username='testuser1', password='testpass1')  #Перелогиниваемся
 
         #Пробуем изменить - неуспешно, так как пользователь - не owner объекта
-        data_correct_input = {'title': 'test1', 'text': 'test', 'client': 1,
+        data_correct_input = {'title': 'test1123', 'text': 'test', 'client': 1,
                               'contact': 1}
         response = self.client.post(reverse('crm:activity', kwargs={'pk': 2}), data_correct_input)
-        self.assertIn("You don't have rights to view this activity", response.content)
+        self.assertRedirects(response,
+                             reverse('crm:activity', kwargs={'pk': 2}))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(models.Activity.objects.get(pk=2).title, 'test1')
 
         #Пробуем удалить - неуспешно
         data_correct_input = {'action': 'Delete'}
-        self.assertRaises(AttributeError, self.client.post,
-                          path=reverse('crm:activity', kwargs={'pk': 2}),
-                          data=data_correct_input)
+        response = self.client.post(reverse('crm:activity', kwargs={'pk': 2}), data_correct_input)
+        self.assertRedirects(response,
+                             reverse('crm:activity', kwargs={'pk': 2}))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(models.Activity.objects.get(pk=2))
 
         self.client.login(username='testuser', password='testpass')  #Перелогиниваемся
 
@@ -401,14 +503,23 @@ class ClientCreateChangeTest(TestCase):
         self.assertFalse(response.context['form'].is_valid())
         self.assertFormError(response, 'form', 'name', "This field is required.")
 
-        #Успешная попытка изменения
+        #Попытка изменения не своего клиента
+        self.client.login(username='testuser1', password='testpass1')
         initial_data = {'name': 'test2'}
         response = self.client.post(reverse('crm:client', kwargs={'pk': 1}), initial_data)
         self.assertRedirects(response,
                              reverse('crm:client', kwargs={'pk': 1}))
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(models.Client.objects.get(pk=1).name, 'test')
+
+        #Успешная попытка изменения
+        self.client.login(username='testuser', password='testpass')
+        initial_data = {'name': 'test2'}
+        response = self.client.post(reverse('crm:client', kwargs={'pk': 1}), initial_data)
         self.assertRedirects(response,
                              reverse('crm:client', kwargs={'pk': 1}))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(models.Client.objects.get(pk=1).name, 'test2')
 
     def test_delete_client(self):
         self.object_contact = models.Contact(first_name='test1', last_name='test',
@@ -421,21 +532,23 @@ class ClientCreateChangeTest(TestCase):
         self.object.save()
 
         #Неуспешное удаление, есть активность
-
         initial_data = {'action': 'Delete'}
         self.assertRaises(ProtectedError, self.client.post, path=reverse('crm:client', kwargs={'pk': 1}),
                           data=initial_data)
 
+        #Создаем еще клиента
         self.object_client1 = models.Client(name='test1', loyal=True, owner=self.user)
         self.object_client1.save()
 
         self.client.login(username='testuser1', password='testpass1')  #Перелогиниваемся
 
-        #Пробуем удалить - неуспешно
+        #Пробуем удалить - неуспешно, не клиент текущего пользователя
         data_correct_input = {'action': 'Delete'}
-        self.assertRaises(AttributeError, self.client.post,
-                          path=reverse('crm:client', kwargs={'pk': 2}),
-                          data=data_correct_input)
+        response = self.client.post(reverse('crm:client', kwargs={'pk': 2}), data_correct_input)
+        self.assertRedirects(response,
+                             reverse('crm:client', kwargs={'pk': 2}))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(models.Client.objects.get(pk=2))
 
         self.client.login(username='testuser', password='testpass')  #Перелогиниваемся
 
@@ -549,14 +662,27 @@ class ContactCreateChangeTest(TestCase):
         self.assertFalse(response.context['form'].is_valid())
         self.assertFormError(response, 'form', 'last_name', "This field is required.")
 
+        #Пробуем изменить активность у которой не являемся владельцем
+        self.client.login(username='testuser1', password='testpass1')
+        initial_data = {'first_name': 'test5', 'last_name': 'test',
+                        'email': 'test@test.com', 'phone': '123'}
+
+        response = self.client.post(reverse('crm:contact', kwargs={'pk': 1}), initial_data)
+        self.assertRedirects(response,
+                             reverse('crm:contact', kwargs={'pk': 1}))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(models.Contact.objects.get(pk=1).first_name, 'test2')
+
     def test_delete_contact(self):
         #Попытка удаления чужого контакта
         self.client.login(username='testuser1', password='testpass1')
 
         initial_data = {'action': 'Delete'}
-        self.assertRaises(AttributeError, self.client.post,
-                          path=reverse('crm:contact', kwargs={'pk': 1}),
-                          data=initial_data)
+        response = self.client.post(reverse('crm:contact', kwargs={'pk': 1}), initial_data)
+        self.assertRedirects(response,
+                             reverse('crm:contact', kwargs={'pk': 1}))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(models.Contact.objects.get(pk=1))
 
         #Перелогиниваемся - не успешная попытка удаления, так как есть активность
         self.client.login(username='testuser', password='testpass')
@@ -613,4 +739,6 @@ class MainPageTest(TestCase):
         self.client.logout()
         response = self.client.get(reverse('crm:main'), {'search': 'test1'})
         self.assertEqual(response.context['search_clients'], 'no auth')
+
+
 

@@ -11,6 +11,10 @@ from .models import Client, Contact, Activity
 from .forms import ContactCreation, ClientCreation, ActivityCreation
 
 
+class NoOwnerError(Exception):
+    pass
+
+
 class MainPage(generic.View):
     """
     Отвечает за отображение главной страницы системы,
@@ -46,6 +50,13 @@ class Distinct(generic.UpdateView):
     Класс для наследования UpdateView + обработка нажатия кнопки Delete на странице
     с удалением соответствующего объекта, если нет препятствий
     """
+
+    def dispatch(self, *args, **kwargs):
+        try:
+            return super(Distinct, self).dispatch(*args, **kwargs)
+        except NoOwnerError:
+            return redirect(reverse('crm:{}'.format(self.distinct_template), kwargs={'pk': self.kwargs['pk']}))
+
     def get_object(self, queryset=None):
         try:
             object_get = self.model.objects.get(pk=self.kwargs['pk'])
@@ -68,8 +79,15 @@ class Distinct(generic.UpdateView):
         return kwargs
 
     def post(self, request, *args, **kwargs):
+        object_get = self.get_object()
+        if not object_get:
+            """
+            Если объект не найден - значит текущий пользователь
+            не является владельцем объекта, который пытается изменить,
+            выбрасываем ошибку
+            """
+            raise NoOwnerError
         if request.POST.get('action', '') == 'Delete':
-            object_get = self.get_object()
             request.session['deleted_data'] = str(object_get)
             object_get.delete()
             return redirect(reverse('crm:main'))
