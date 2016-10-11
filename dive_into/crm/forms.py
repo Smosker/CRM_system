@@ -39,6 +39,7 @@ class ActivityCreation(forms.ModelForm):
         self.fields['contact'].queryset = Contact.objects.filter(client__in=user_clients)
 
     def clean(self):
+        super(ActivityCreation, self).clean()
         form_data = self.cleaned_data
         if all((form_data.get('client', ''), form_data.get('contact', ''))) \
                 and form_data['client'] != form_data['contact'].client:

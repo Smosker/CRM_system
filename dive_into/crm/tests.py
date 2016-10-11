@@ -41,6 +41,7 @@ class PageAccessTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user('testuser', 'test@test.com', 'testpass')
+        self.user1 = User.objects.create_user('testuser1', 'test@test.com', 'testpass1')
 
     def test_access(self):
         """
@@ -51,17 +52,17 @@ class PageAccessTest(TestCase):
         #и проверка корректного редиректа на страницу аутентификации
         response = self.client.get(reverse('crm:new_client'))
         self.assertRedirects(response,
-                             reverse('login')+'?next={}'.format(reverse('crm:new_client')))
+                             reverse('login') + '?next={}'.format(reverse('crm:new_client')))
         self.assertEqual(response.status_code, 302)
 
         response = self.client.get(reverse('crm:new_contact'))
         self.assertRedirects(response,
-                             reverse('login')+'?next={}'.format(reverse('crm:new_contact')))
+                             reverse('login') + '?next={}'.format(reverse('crm:new_contact')))
         self.assertEqual(response.status_code, 302)
 
         response = self.client.get(reverse('crm:new_activity'))
         self.assertRedirects(response,
-                             reverse('login')+'?next={}'.format(reverse('crm:new_activity')))
+                             reverse('login') + '?next={}'.format(reverse('crm:new_activity')))
         self.assertEqual(response.status_code, 302)
 
         #Доступность сраниц создания объектов с авторизацией
@@ -77,7 +78,7 @@ class PageAccessTest(TestCase):
 
     def test_distinct_client(self):
         self.object = models.Client(name='test1', loyal=True, owner=self.user)
-        self.object1 = models.Client(name='test2', loyal=True)
+        self.object1 = models.Client(name='test2', loyal=True, owner=self.user1)
         self.object.save()
         self.object1.save()
 
@@ -112,7 +113,8 @@ class PageAccessTest(TestCase):
                                      owner=self.user)
 
         self.object1 = models.Contact(first_name='test2', last_name='test',
-                                      email='test@test.com', phone='123')
+                                      email='test@test.com', phone='123',
+                                      owner=self.user1)
         self.object.save()
         self.object1.save()
 
@@ -143,8 +145,8 @@ class PageAccessTest(TestCase):
 
     def test_distinct_activity(self):
         self.object_contact = models.Contact(first_name='test1', last_name='test',
-                                            email='test@test.com', phone='123',
-                                            owner=self.user)
+                                             email='test@test.com', phone='123',
+                                             owner=self.user)
 
         self.object_client = models.Client(name='test1', loyal=True, owner=self.user)
 
@@ -169,7 +171,6 @@ class PageAccessTest(TestCase):
         #Попытка обращения к несуществующей активности без аутентификации
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 3}))
         self.assertTrue(response.content.startswith('<h1>Not Found</h1>'))
-
 
         self.client.login(username='testuser', password='testpass')
         #Успешная попытка получения информации о активносте принадлежащем пользователю
@@ -232,13 +233,27 @@ class ActivityCreateChangeTest(TestCase):
         self.assertRedirects(response, reverse('crm:activity', kwargs={'pk': 2}))
         self.assertEqual(response.status_code, 302)
 
+        #Попытка создания с чужим клиентом/контактом
+        self.object_client1 = models.Client(name='test2', loyal=True, owner=self.user1)
+        self.object_client1.save()
+
+        self.object_contact1 = models.Contact(first_name='test2', last_name='test',
+                                              email='test@test.com', phone='123',
+                                              client=self.object_client1, owner=self.user1)
+        self.object_contact1.save()
+        initial_data = {'title': 'test', 'text': 'test', 'client': 2,
+                        'contact': 2}
+
+        response = self.client.post(reverse('crm:new_activity'), initial_data)
+        self.assertFormError(response, 'form', 'client', error)
+
     def test_change_activity(self):
         self.object_client1 = models.Client(name='test2', loyal=True, owner=self.user)
         self.object_client1.save()
 
         self.object_contact1 = models.Contact(first_name='test2', last_name='test',
-                                             email='test@test.com', phone='123',
-                                             client=self.object_client1, owner=self.user)
+                                              email='test@test.com', phone='123',
+                                              client=self.object_client1, owner=self.user)
         self.object_contact1.save()
         #Пробуем изменить активность выбрав клиента, который не связан с контактом
         data_client_input = {'title': 'test', 'text': 'test', 'client': 2,
@@ -274,8 +289,7 @@ class ActivityCreateChangeTest(TestCase):
         self.client.post(reverse('crm:activity', kwargs={'pk': 1}), content)
         activity = models.Activity.objects.get(pk=1)
 
-        self.assertIsNotNone(activity.send_date) #Проверяем, что дата отправки проставилась
-
+        self.assertIsNotNone(activity.send_date)  #Проверяем, что дата отправки проставилась
 
         data_correct_input = {'title': 'test', 'text': 'test', 'client': 1,
                               'contact': 1}
@@ -286,10 +300,10 @@ class ActivityCreateChangeTest(TestCase):
 
         #Создаем еще одну активность
         self.object2 = models.Activity(title='test1', text='test1', contact=self.object_contact,
-                                      client=self.object_client, owner=self.user)
+                                       client=self.object_client, owner=self.user)
         self.object2.save()
 
-        self.client.login(username='testuser1', password='testpass1')#Перелогиниваемся
+        self.client.login(username='testuser1', password='testpass1')  #Перелогиниваемся
 
         #Пробуем изменить - неуспешно, так как пользователь - не owner объекта
         data_correct_input = {'title': 'test1', 'text': 'test', 'client': 1,
@@ -303,7 +317,7 @@ class ActivityCreateChangeTest(TestCase):
                           path=reverse('crm:activity', kwargs={'pk': 2}),
                           data=data_correct_input)
 
-        self.client.login(username='testuser', password='testpass')#Перелогиниваемся
+        self.client.login(username='testuser', password='testpass')  #Перелогиниваемся
 
         #Пробуем изменить - успешно
         data_correct_input = {'title': 'test1', 'text': 'test', 'client': 2,
@@ -317,7 +331,7 @@ class ActivityCreateChangeTest(TestCase):
         data_correct_input = {'action': 'Delete'}
         response = self.client.post(reverse('crm:activity', kwargs={'pk': 2}), data_correct_input)
 
-        self.assertTrue(self.client.session['deleted_data']) #Проверяем, что сохранили информацию
+        self.assertTrue(self.client.session['deleted_data'])  #Проверяем, что сохранили информацию
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response,
                              reverse('crm:main'))
@@ -342,7 +356,6 @@ class ClientCreateChangeTest(TestCase):
         self.assertFalse(response.context['form'].is_valid())
         self.assertFormError(response, 'form', 'name', "Client with this Name already exists.")
         self.assertIn("Client with this Name already exists.", response.content)
-
 
         #Попытка создания без имени
         initial_data = {'loyal': True}
@@ -416,7 +429,7 @@ class ClientCreateChangeTest(TestCase):
         self.object_client1 = models.Client(name='test1', loyal=True, owner=self.user)
         self.object_client1.save()
 
-        self.client.login(username='testuser1', password='testpass1')#Перелогиниваемся
+        self.client.login(username='testuser1', password='testpass1')  #Перелогиниваемся
 
         #Пробуем удалить - неуспешно
         data_correct_input = {'action': 'Delete'}
@@ -424,13 +437,13 @@ class ClientCreateChangeTest(TestCase):
                           path=reverse('crm:client', kwargs={'pk': 2}),
                           data=data_correct_input)
 
-        self.client.login(username='testuser', password='testpass')#Перелогиниваемся
+        self.client.login(username='testuser', password='testpass')  #Перелогиниваемся
 
         #Успешное удаление
         initial_data = {'action': 'Delete'}
         response = self.client.post(reverse('crm:client', kwargs={'pk': 2}), initial_data)
 
-        self.assertEqual(self.client.session['deleted_data'], 'Name: test1, Id: 2') #Проверяем, что сохранили информацию
+        self.assertEqual(self.client.session['deleted_data'], 'Name: test1, Id: 2')  #Проверяем, что сохранили информацию
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response,
                              reverse('crm:main'))
@@ -453,7 +466,7 @@ class ContactCreateChangeTest(TestCase):
         self.object_contact.save()
 
         self.object_activity = models.Activity(title='test', text='test', contact=self.object_contact,
-                                      client=self.object_client, owner=self.user)
+                                               client=self.object_client, owner=self.user)
         self.object_activity.save()
 
     def test_creation_contact(self):
@@ -551,7 +564,6 @@ class ContactCreateChangeTest(TestCase):
         self.assertRaises(ProtectedError, self.client.post, path=reverse('crm:client', kwargs={'pk': 1}),
                           data=initial_data)
 
-
         #Удаляем активность и затем контакт
         self.object_activity.delete()
 
@@ -563,24 +575,42 @@ class ContactCreateChangeTest(TestCase):
         self.assertEqual(models.Contact.objects.count(), 0)
 
 
+class MainPageTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('testuser', 'test@test.com', 'testpass')
+        self.user1 = User.objects.create_user('testuser1', 'test@test.com', 'testpass1')
+        self.client.login(username='testuser', password='testpass')
 
+        self.object_client = models.Client(name='test1', loyal=True, owner=self.user)
+        self.object_client.save()
 
+        self.object_client1 = models.Client(name='test123', loyal=True, owner=self.user1)
+        self.object_client1.save()
 
+    def test_search_form(self):
+        """
+        Проверка формы поиска на главной страницы,
+        должны выдавать только результаты доступное текущему пользователю
+        """
+        #Выполняем поиск клиента доступного текущему пользователю
+        response = self.client.get(reverse('crm:main'), {'search': 'test'})
+        self.assertEqual(len(response.context['search_clients']), 1)
+        self.assertEqual(response.context['search_clients'][0].owner, self.user)
 
+        #Выполняем поиск клиента недоступного другому пользователю
+        response = self.client.get(reverse('crm:main'), {'search': 'test12'})
+        self.assertEqual(response.context['search_clients'], 'no result')
 
+        #Меняем пользовователя - выполняем поиск
+        self.client.login(username='testuser1', password='testpass1')
+        response = self.client.get(reverse('crm:main'), {'search': 'test'})
+        self.assertEqual(len(response.context['search_clients']), 1)
+        self.assertEqual(response.context['search_clients'][0].owner, self.user1)
+        self.assertEqual(response.context['search_clients'][0].name, 'test123')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        #Разлогиниваемся и пробуем выполнить поиск
+        self.client.logout()
+        response = self.client.get(reverse('crm:main'), {'search': 'test1'})
+        self.assertEqual(response.context['search_clients'], 'no auth')
 
