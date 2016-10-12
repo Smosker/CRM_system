@@ -7,10 +7,8 @@ from django.core.urlresolvers import reverse
 from django.test.client import Client
 from django.db import IntegrityError
 from django.db.models import ProtectedError
-
+import models
 # Create your tests here.
-
-import models, views
 
 
 class ClientTest(TestCase):
@@ -110,9 +108,11 @@ class PageAccessTest(TestCase):
         #Недоступность клиентов без аутентификации
         response = self.client.get(reverse('crm:client', kwargs={'pk': 1}))
         self.assertIn("You don't have rights to view this client", response.content)
+        self.assertNotIn('client', response.context)
 
         response = self.client.get(reverse('crm:client', kwargs={'pk': 2}))
         self.assertIn("You don't have rights to view this client", response.content)
+        self.assertNotIn('client', response.context)
 
         #Попытка обращения к несуществующему клиенту без аутентификации
         response = self.client.get(reverse('crm:client', kwargs={'pk': 3}))
@@ -123,10 +123,12 @@ class PageAccessTest(TestCase):
         #Успешная попытка получения информации о клиенте принадлежащем пользователю
         response = self.client.get(reverse('crm:client', kwargs={'pk': 1}))
         self.assertNotIn("You don't have rights to view this client", response.content)
+        self.assertIn('client', response.context)
 
         #Не успешная попытка получения информации о клиента не принадлежащем пользователю
         response = self.client.get(reverse('crm:client', kwargs={'pk': 2}))
         self.assertIn("You don't have rights to view this client", response.content)
+        self.assertNotIn('client', response.context)
 
         #Попытка обращения к несуществующему клиенту с аутентификацией
         response = self.client.get(reverse('crm:client', kwargs={'pk': 3}))
@@ -146,9 +148,11 @@ class PageAccessTest(TestCase):
         #Недоступность контактов без аутентификации
         response = self.client.get(reverse('crm:contact', kwargs={'pk': 1}))
         self.assertIn("You don't have rights to view this contact", response.content)
+        self.assertNotIn('contact', response.context)
 
         response = self.client.get(reverse('crm:contact', kwargs={'pk': 2}))
         self.assertIn("You don't have rights to view this contact", response.content)
+        self.assertNotIn('contact', response.context)
 
         #Попытка обращения к несуществующему контакту без аутентификации
         response = self.client.get(reverse('crm:contact', kwargs={'pk': 3}))
@@ -159,10 +163,12 @@ class PageAccessTest(TestCase):
         #Успешная попытка получения информации о контакте принадлежащем пользователю
         response = self.client.get(reverse('crm:contact', kwargs={'pk': 1}))
         self.assertNotIn("You don't have rights to view this contact", response.content)
+        self.assertIn('contact', response.context)
 
         #Не успешная попытка получения информации о контакте не принадлежащем пользователю
         response = self.client.get(reverse('crm:contact', kwargs={'pk': 2}))
         self.assertIn("You don't have rights to view this contact", response.content)
+        self.assertNotIn('contact', response.context)
 
         #Попытка обращения к несуществующему контакту с аутентификацией
         response = self.client.get(reverse('crm:client', kwargs={'pk': 3}))
@@ -189,9 +195,11 @@ class PageAccessTest(TestCase):
         #Недоступность активности без аутентификации
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 1}))
         self.assertIn("You don't have rights to view this activity", response.content)
+        self.assertNotIn('activity', response.context)
 
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 2}))
         self.assertIn("You don't have rights to view this activity", response.content)
+        self.assertNotIn('activity', response.context)
 
         #Попытка обращения к несуществующей активности без аутентификации
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 3}))
@@ -201,10 +209,12 @@ class PageAccessTest(TestCase):
         #Успешная попытка получения информации о активносте принадлежащем пользователю
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 1}))
         self.assertNotIn("You don't have rights to view this activity", response.content)
+        self.assertIn('activity', response.context)
 
         #Не успешная попытка получения информации об активности не принадлежащей пользователю
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 2}))
         self.assertIn("You don't have rights to view this activity", response.content)
+        self.assertNotIn('activity', response.context)
 
         #Попытка обращения к несуществующей активности с аутентификацией
         response = self.client.get(reverse('crm:activity', kwargs={'pk': 3}))
@@ -217,17 +227,20 @@ class PageAccessTest(TestCase):
         response = self.client.get(reverse('crm:clients'))
         self.assertIn('No clients are available.', response.content)
         self.assertNotIn('test1', response.content)
+        self.assertFalse(response.context['clients_list'])
 
         #Недоступность чужих клиентов
         self.client.login(username='testuser1', password='testpass1')
         response = self.client.get(reverse('crm:clients'))
         self.assertIn('No clients are available.', response.content)
+        self.assertFalse(response.context['clients_list'])
 
         #Доступность своего клиента
         self.client.login(username='testuser', password='testpass')
         response = self.client.get(reverse('crm:clients'))
         self.assertNotIn('No clients are available.', response.content)
         self.assertIn('test1', response.content)
+        self.assertTrue(response.context['clients_list'])
 
     def test_contacts(self):
         self.object = models.Contact(first_name='test1', last_name='test',
@@ -239,17 +252,20 @@ class PageAccessTest(TestCase):
         response = self.client.get(reverse('crm:contacts'))
         self.assertIn('No contacts are available.', response.content)
         self.assertNotIn('test1', response.content)
+        self.assertFalse(response.context['contacts_list'])
 
         #Недоступность чужих контактов
         self.client.login(username='testuser1', password='testpass1')
         response = self.client.get(reverse('crm:contacts'))
         self.assertIn('No contacts are available.', response.content)
+        self.assertFalse(response.context['contacts_list'])
 
         #Доступность своего контакта
         self.client.login(username='testuser', password='testpass')
         response = self.client.get(reverse('crm:contacts'))
         self.assertNotIn('No contacts are available.', response.content)
         self.assertIn('test1', response.content)
+        self.assertTrue(response.context['contacts_list'])
 
     def test_activities(self):
         self.object_contact = models.Contact(first_name='test1', last_name='test',
@@ -270,17 +286,20 @@ class PageAccessTest(TestCase):
         response = self.client.get(reverse('crm:activities'))
         self.assertIn('No activities are available', response.content)
         self.assertNotIn('test1', response.content)
+        self.assertFalse(response.context['activities_list'])
 
         #Недоступность чужих активностей
         self.client.login(username='testuser1', password='testpass1')
         response = self.client.get(reverse('crm:activities'))
         self.assertIn('No activities are available', response.content)
+        self.assertFalse(response.context['activities_list'])
 
         #Доступность своей активности
         self.client.login(username='testuser', password='testpass')
         response = self.client.get(reverse('crm:activities'))
         self.assertNotIn('No activities are available', response.content)
         self.assertIn('test1', response.content)
+        self.assertTrue(response.context['activities_list'])
 
 
 class ActivityCreateChangeTest(TestCase):
