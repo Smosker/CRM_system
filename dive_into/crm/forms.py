@@ -4,10 +4,6 @@ from .models import Client, Contact, Activity
 
 
 class ContactCreation(forms.ModelForm):
-    """
-    Форма отвечающая за внесение изменения в существующий
-    маршрут или создание нового
-    """
     def __init__(self, user=None, *args, **kwargs):
         super(ContactCreation, self).__init__(*args, **kwargs)
         self.fields['client'].queryset = Client.objects.filter(owner=user)
