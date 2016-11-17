@@ -32,7 +32,7 @@ class Client(models.Model):
 
 class Contact(models.Model):
     """
-    Таблица с данными о всех контактах клиентах
+    Таблица с данными о всех контактах в системе
     """
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
